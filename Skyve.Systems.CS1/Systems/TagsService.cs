@@ -26,15 +26,17 @@ internal class TagsService : ITagsService
 
 	private readonly INotifier _notifier;
 	private readonly ILogger _logger;
+	private readonly SaveHandler _saveHandler;
 	private readonly IWorkshopService _workshopService;
 
-	public TagsService(INotifier notifier, IWorkshopService workshopService, IAssetUtil assetUtil, ILogger logger)
+	public TagsService(INotifier notifier, IWorkshopService workshopService, IAssetUtil assetUtil, ILogger logger, SaveHandler saveHandler)
 	{
 		_assetTagsDictionary = new(new PathEqualityComparer());
 		_customTagsDictionary = new(new PathEqualityComparer());
 		_tagsCache = new(StringComparer.InvariantCultureIgnoreCase);
 		_notifier = notifier;
 		_logger = logger;
+		_saveHandler = saveHandler;
 		_workshopService = workshopService;
 		_assetTags = [];
 		_workshopTags = [];
@@ -58,7 +60,7 @@ internal class TagsService : ITagsService
 			}
 		}
 
-        ISave.Load(out Dictionary<string, string[]> customTags, "CustomTags.json");
+		_saveHandler.Load(out Dictionary<string, string[]> customTags, "CustomTags.json");
 
 		if (customTags is not null)
 		{
@@ -297,13 +299,13 @@ internal class TagsService : ITagsService
 
 			_customTagsDictionary[asset.FilePath] = [.. value.WhereNotEmpty()];
 
-			ISave.Save(_customTagsDictionary, "CustomTags.json");
+			_saveHandler.Save(_customTagsDictionary, "CustomTags.json");
 		}
 		else if (package.LocalParentPackage is ILocalPackageWithContents lp)
 		{
 			_customTagsDictionary[lp.Folder] = [.. value.WhereNotEmpty()];
 
-            ISave.Save(_customTagsDictionary, "CustomTags.json");
+			_saveHandler.Save(_customTagsDictionary, "CustomTags.json");
 		}
 
 		_notifier.OnRefreshUI(true);

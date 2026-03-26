@@ -6,6 +6,7 @@ using Skyve.Systems.CS1.Utilities;
 using System.Windows.Forms;
 
 namespace Skyve.App.CS1.Services;
+
 internal class CustomPackageService : ICustomPackageService
 {
 	public SlickStripItem[] GetRightClickMenuItems(IPackage item)
@@ -29,30 +30,36 @@ internal class CustomPackageService : ICustomPackageService
 
 		return new SlickStripItem[]
 		{
-			  new (Locale.IncludeAllItemsInThisPackage.FormatPlural(list.Count), "I_Ok", isInstalled && list.Any(item => !item.LocalPackage!.IsIncluded()), action: () => { bulkUtil.SetBulkIncluded(list.SelectWhereNotNull(x => list.Count == 1 ? x.LocalParentPackage : x.LocalPackage)!, true); })
-			, new (Locale.ExcludeAllItemsInThisPackage.FormatPlural(list.Count), "I_Cancel", isInstalled && list.Any(item => item.LocalPackage!.IsIncluded()), action: () => { bulkUtil.SetBulkIncluded(list.SelectWhereNotNull(x => list.Count == 1 ? x.LocalParentPackage : x.LocalPackage)!, false); })
-			, new ((isInstalled ? Locale.ReDownloadPackage : Locale.DownloadPackage).FormatPlural(list.Count), "I_Install", SteamUtil.IsSteamAvailable(), action: () => Redownload(list))
-			, new (Locale.MovePackageToLocalFolder.FormatPlural(list.Count), "I_PC", isInstalled && !isLocal, action: () => list.SelectWhereNotNull(x => x.LocalParentPackage).Foreach(x => packageManager.MoveToLocalFolder(x!)))
-			, new (string.Empty)
-			, new ((isLocal && list[0] is IAsset ? Locale.DeleteAsset : Locale.DeletePackage).FormatPlural(list.Count), "I_Disposable", isInstalled, action: () => AskThenDelete(list))
-			, new (Locale.UnsubscribePackage.FormatPlural(list.Count), "I_Steam", isInstalled && !isLocal, action: () => subscriptionManager.UnSubscribe(list.Cast<IPackageIdentity>()))
-			, new (Locale.SubscribeToItem.FormatPlural(list.Count), "I_Steam", !isInstalled && !isLocal, action: () => subscriptionManager.Subscribe(list.Cast<IPackageIdentity>()))
-			, new (string.Empty)
-			, new (Locale.EditTagsOfPackage.FormatPlural(list.Count), "I_Tag", isInstalled, action: () => EditTags(list.SelectWhereNotNull(x => x.LocalParentPackage).SelectMany(x => x!.Assets)))
-			, new (Locale.EditTags.FormatPlural(list.Count), "I_Tag", isInstalled, action: () => EditTags(list.SelectWhereNotNull(x => x.LocalPackage)!))
-			, new (Locale.EditCompatibility.FormatPlural(list.Count), "I_CompatibilityReport", userService.User.Manager || list.Any(item => userService.User.Equals(item.GetWorkshopInfo()?.Author)), action: () => { App.Program.MainForm.PushPanel(null, new PC_CompatibilityManagement(items.Select(x => x.Id)));})
-			, new (string.Empty)
-			, new (Locale.OtherPlaysets, "I_ProfileSettings", fade: true)
-			, new (Locale.IncludeThisItemInAllPlaysets.FormatPlural(list.Count), "I_Ok", tab: 1, action: () => { new BackgroundAction(() => list.SelectWhereNotNull(x => x.LocalPackage).Foreach(x => profileManager.SetIncludedForAll(x!, true))).Run(); bulkUtil.SetBulkIncluded(list.SelectWhereNotNull(x => x.LocalPackage)!, true); })
-			, new (Locale.ExcludeThisItemInAllPlaysets.FormatPlural(list.Count), "I_Cancel", tab: 1, action: () => { new BackgroundAction(() => list.SelectWhereNotNull(x => x.LocalPackage).Foreach(x => profileManager.SetIncludedForAll(x!, false))).Run(); bulkUtil.SetBulkIncluded(list.SelectWhereNotNull(x => x.LocalPackage)!, false);})
-			, new (Locale.Copy, "I_Copy", !isLocal, fade: true)
-			, new (Locale.CopyPackageName.FormatPlural(list.Count), !isLocal ? null : "I_Copy", tab: !isLocal ? 1 : 0, action: () => Clipboard.SetText(list.ListStrings(CrossIO.NewLine)))
-			, new (Locale.CopyWorkshopLink.FormatPlural(list.Count), null, !isLocal, tab: 1, action: () => Clipboard.SetText(list.ListStrings(x => x.Url, CrossIO.NewLine)))
-			, new (Locale.CopyWorkshopId.FormatPlural(list.Count), null, !isLocal, tab: 1,  action: () => Clipboard.SetText(list.ListStrings(x => x.Id.ToString(), CrossIO.NewLine)))
-			, new (string.Empty, show: !isLocal, tab: 1)
-			, new (Locale.CopyAuthorName.FormatPlural(list.Count), null, !isLocal, tab: 1, action: () => Clipboard.SetText(list.ListStrings(x => x.GetWorkshopInfo()?.Author?.Name , CrossIO.NewLine)))
-			, new (Locale.CopyAuthorLink.FormatPlural(list.Count), null, !isLocal, tab: 1, action: () => Clipboard.SetText(list.ListStrings(x => x.GetWorkshopInfo()?.Author?.ProfileUrl , CrossIO.NewLine)))
-			, new (Locale.CopyAuthorSteamId.FormatPlural(list.Count), null, !isLocal, tab: 1,  action: () => Clipboard.SetText(list.ListStrings(x => x.GetWorkshopInfo()?.Author?.Id?.ToString() , CrossIO.NewLine)))
+			  new (Locale.IncludeAllItemsInThisPackage.FormatPlural(list.Count), "Ok", () => { bulkUtil.SetBulkIncluded(list.SelectWhereNotNull(x => list.Count == 1 ? x.LocalParentPackage : x.LocalPackage)!, true); },visible: isInstalled && list.Any(item => !item.LocalPackage!.IsIncluded()))
+			, new (Locale.ExcludeAllItemsInThisPackage.FormatPlural(list.Count), "Cancel", () => { bulkUtil.SetBulkIncluded(list.SelectWhereNotNull(x => list.Count == 1 ? x.LocalParentPackage : x.LocalPackage)!, false); }, visible:isInstalled && list.Any(item => item.LocalPackage!.IsIncluded()))
+			, new ((isInstalled ? Locale.ReDownloadPackage : Locale.DownloadPackage).FormatPlural(list.Count), "Install", () => Redownload(list), visible:SteamUtil.IsSteamAvailable())
+			, new (Locale.MovePackageToLocalFolder.FormatPlural(list.Count), "PC", () => list.SelectWhereNotNull(x => x.LocalParentPackage).Foreach(x => packageManager.MoveToLocalFolder(x !)), visible:isInstalled && ! isLocal)
+			, new ()
+			, new ((isLocal && list[0] is IAsset ? Locale.DeleteAsset : Locale.DeletePackage).FormatPlural(list.Count), "Disposable", () => AskThenDelete(list), visible:isInstalled)
+			, new (Locale.UnsubscribePackage.FormatPlural(list.Count), "Steam", () => subscriptionManager.UnSubscribe(list.Cast < IPackageIdentity >()), visible:isInstalled && ! isLocal)
+			, new (Locale.SubscribeToItem.FormatPlural(list.Count), "Steam", () => subscriptionManager.Subscribe(list.Cast < IPackageIdentity >()), visible:! isInstalled && ! isLocal)
+			, new ()
+			, new (Locale.EditTagsOfPackage.FormatPlural(list.Count), "Tag", () => EditTags(list.SelectWhereNotNull(x => x.LocalParentPackage).SelectMany(x => x !.Assets)),visible: isInstalled)
+			, new (Locale.EditTags.FormatPlural(list.Count), "Tag", () => EditTags(list.SelectWhereNotNull(x => x.LocalPackage) !),visible: isInstalled)
+			, new (Locale.EditCompatibility.FormatPlural(list.Count), "CompatibilityReport", () => { App.Program.MainForm.PushPanel(null, new PC_CompatibilityManagement(items.Select(x => x.Id))); }, visible: userService.User.Manager || list.Any(item => userService.User.Equals(item.GetWorkshopInfo() ?.Author)))
+			, new ()
+			, new (Locale.OtherPlaysets, "PlaysetSettings")
+			{
+				SubItems = [
+					new (Locale.IncludeThisItemInAllPlaysets.FormatPlural(list.Count), "Ok",  action: () => { new BackgroundAction(() => list.SelectWhereNotNull(x => x.LocalPackage).Foreach(x => profileManager.SetIncludedForAll(x!, true))).Run(); bulkUtil.SetBulkIncluded(list.SelectWhereNotNull(x => x.LocalPackage)!, true); }),
+					new (Locale.ExcludeThisItemInAllPlaysets.FormatPlural(list.Count), "Cancel", action: () => { new BackgroundAction(() => list.SelectWhereNotNull(x => x.LocalPackage).Foreach(x => profileManager.SetIncludedForAll(x!, false))).Run(); bulkUtil.SetBulkIncluded(list.SelectWhereNotNull(x => x.LocalPackage)!, false);})]
+			}
+			, new (Locale.Copy, "Copy", visible: !isLocal)
+			{
+				SubItems = [
+					  new (Locale.CopyPackageName.FormatPlural(list.Count), null,  action: () => Clipboard.SetText(list.ListStrings(CrossIO.NewLine)))
+					, new (Locale.CopyWorkshopLink.FormatPlural(list.Count), null, () => Clipboard.SetText(list.ListStrings(x => x.Url, CrossIO.NewLine)))
+					, new (Locale.CopyWorkshopId.FormatPlural(list.Count), null,  () => Clipboard.SetText(list.ListStrings(x => x.Id.ToString(), CrossIO.NewLine)))
+					, new (  )
+					, new (Locale.CopyAuthorName.FormatPlural(list.Count), null,  () => Clipboard.SetText(list.ListStrings(x => x.GetWorkshopInfo()?.Author?.Name , CrossIO.NewLine)))
+					, new (Locale.CopyAuthorLink.FormatPlural(list.Count), null,  () => Clipboard.SetText(list.ListStrings(x => x.GetWorkshopInfo()?.Author?.ProfileUrl , CrossIO.NewLine)))
+					, new (Locale.CopyAuthorSteamId.FormatPlural(list.Count), null,  () => Clipboard.SetText(list.ListStrings(x => x.GetWorkshopInfo()?.Author?.Id?.ToString() , CrossIO.NewLine)))]
+			}
 		};
 	}
 
@@ -80,7 +87,7 @@ internal class CustomPackageService : ICustomPackageService
 				{
 					if (item!.IsLocal && item is IAsset asset)
 					{
-						CrossIO.DeleteFile(asset.FilePath);
+						CrossIO.DeleteFile(asset.FilePath, false);
 					}
 					else if (item.LocalParentPackage is not null)
 					{

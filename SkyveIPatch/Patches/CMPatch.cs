@@ -41,17 +41,17 @@ namespace SkyveIPatch.Patches
                 if (noReporters)
                     NoReportersPatch(assemblyDefinition);
 
-                LoadAssembliesROPatch(assemblyDefinition);
+				LoadAssembliesROPatch(assemblyDefinition);
 
-                assemblyDefinition = LoadAssembliesPatch(assemblyDefinition);
+				assemblyDefinition = LoadAssembliesPatch(assemblyDefinition);
                 CreateUserModInstancePatch(assemblyDefinition);
 #if DEBUG
                 //assemblyDefinition = InsertPrintStackTrace(assemblyDefinition);
 #endif
 
-                EnsureIncludedExcludedPackagePatch(assemblyDefinition);
+				EnsureIncludedExcludedPackagePatch(assemblyDefinition);
 
-                bool noAssets = Environment.GetCommandLineArgs().Any(_arg => _arg == "-noAssets");
+				bool noAssets = Environment.GetCommandLineArgs().Any(_arg => _arg == "-noAssets");
                 if (noAssets) {
                     assemblyDefinition = NoCustomAssetsPatch(assemblyDefinition);
                 } else {
@@ -226,7 +226,7 @@ namespace SkyveIPatch.Patches
                 // Insert BEFORE files[] stored (stloc after GetFiles)
                 var storeFiles = instructions.SkipWhile(i => i.Offset <= getFilesCall.Offset).First(i => i.IsStLoc());
 
-                ilProcessor.InsertBefore(storeFiles, callReplaceAssemblyPath);
+               // ilProcessor.InsertBefore(storeFiles, callReplaceAssemblyPath);
             }
 
             Log.Successful();

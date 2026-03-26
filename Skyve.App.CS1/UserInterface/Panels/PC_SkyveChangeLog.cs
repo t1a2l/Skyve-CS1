@@ -16,7 +16,7 @@ internal class PC_SkyveChangeLog : PC_Changelog
 	protected override void PrepareChangelog(List<VersionChangeLog> changeLogs)
 	{
 #if !DEBUG
-#if Stable
+#if STABLE
 		changeLogs.RemoveAll(x => x.Beta);
 #else
 		changeLogs.RemoveAll(x => x.Stable);
@@ -30,21 +30,21 @@ internal class PC_SkyveChangeLog : PC_Changelog
 				+ current.ChangeGroups.ListStrings(x => $"## {x.Name}\r\n{x.Changes.ListStrings(y => $"* {y}", "\r\n")}", "\r\n\r\n"));
 		}
 #else
-		if (System.Diagnostics.Debugger.IsAttached)
-		{
-			var texts = new List<string>();
+		//if (System.Diagnostics.Debugger.IsAttached)
+		//{
+		//	var texts = new List<string>();
 
-			foreach (var changelog in changeLogs)
-			{
-				texts.Add(changelog.Tagline);
-				texts.AddRange(changelog.ChangeGroups.Select(x => x.Name));
-				texts.AddRange(changelog.ChangeGroups.SelectMany(x => x.Changes));
-			}
+		//	foreach (var changelog in changeLogs)
+		//	{
+		//		texts.Add(changelog.Tagline);
+		//		texts.AddRange(changelog.ChangeGroups.Select(x => x.Name));
+		//		texts.AddRange(changelog.ChangeGroups.SelectMany(x => x.Changes));
+		//	}
 
-			var json = Newtonsoft.Json.JsonConvert.SerializeObject(texts.WhereNotEmpty().Distinct().OrderBy(x => x.Length).ToDictionary(x => x), Newtonsoft.Json.Formatting.Indented);
+		//	var json = Newtonsoft.Json.JsonConvert.SerializeObject(texts.WhereNotEmpty().Distinct().OrderBy(x => x.Length).ToDictionary(x => x), Newtonsoft.Json.Formatting.Indented);
 
-			System.IO.File.WriteAllText("../../../Properties/Changelog.json", json);
-		}
+		//	System.IO.File.WriteAllText("../../../Properties/Changelog.json", json);
+		//}
 #endif
 	}
 }

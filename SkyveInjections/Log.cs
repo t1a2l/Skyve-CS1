@@ -169,9 +169,7 @@ namespace KianCommons {
 
                 AssemblyName details = typeof(Log).Assembly.GetName();
                 Info($"Log file at {LogFilePath} now={DateTime.Now}", true);
-                Info($"{details.Name} Version:{details.Version} " +
-                     $"Commit:{ThisAssembly.Git.Commit} " +
-                     $"CommitDate:{ThisAssembly.Git.CommitDate}", true);
+                Info($"{details.Name} Version:{details.Version} ", true);
             } catch (Exception ex) {
                 Log.LogUnityException(ex);
             }

@@ -137,35 +137,35 @@ public class CacheUtil(Package.Asset[] assets, PluginManager.PluginInfo[] plugin
 		try
 		{
 			Caching = true;
-			//AquirePathDetails();
-			//Save();
 			AquireAssetsDetails();
-			Save();
-			AquireDlcs();
 			Save();
 		}
 		catch (Exception ex) { Log.Exception(ex); }
 		finally { Caching = false; }
 	}
 
-	private void AquireDlcs()
+	public static void CacheOwnedDlcs()
 	{
-        uint[] dlcs = [346791, 369150, 420610, 456200, 515190, 515191, 547500, 547501, 547502, 563850, 614580, 614581, 614582, 715190, 715191, 715192, 715193, 715194, 815380, 944070, 944071, 1059820, 1065490, 1065491, 1146930, 1148020, 1148021, 1148022, 1196100, 1531470, 1531471, 1531472, 1531473, 1726380, 1726381, 1726382, 1726383, 1726384, 1992290, 1992291, 1992292, 1992293, 2008400, 2144480, 2144481, 2144482, 2144483, 2148900, 2148901, 2148902, 2148903, 2148904, 2224690, 2224691, 2225940, 2225941, 2313320, 2313321, 2313322, 2313323, 2313324, 2342310, 2934300, 2955870, 2955880, 2955890, 2955900, 2955910, 2955920, 3731500, 3731510, 3731530, 4031130, 4031140, 4031150, 4031160];
-
-        uint[] extars = [340160, 346790, 352510, 352511, 352512, 355600, 365040, 470680, 470930, 525940, 526610, 526611, 526612, 536610];
-
-        uint[] AvailableDLCs = [.. dlcs, .. extars];
-
-        var dic = new List<uint>();
-
-		foreach (var dlc in AvailableDLCs)
+		try
 		{
-			if (PlatformService.IsAppOwned(dlc))
-			{
-				dic.Add(dlc);
-			}
-        }
+			var dic = new List<uint>();
+			var config = DlcConfig.Deserialize();
 
-		Cache.AvailableDLCs = [.. dic];
+			Log.Info($"Checking owned DLCs...");
+
+			foreach (var dlc in config.AvailableDLCs)
+			{
+				if (PlatformService.IsAppOwned(dlc))
+				{
+					dic.Add(dlc);
+				}
+			}
+
+			config.OwnedDLCs = dic;
+			config.Serialize();
+
+			Log.Info($"Owned DLCs: {string.Join(", ", config.OwnedDLCs.Select(x => x.ToString()).ToArray())}");
+		}
+		catch (Exception ex) { Log.Exception(ex); }
 	}
 }
